@@ -1,29 +1,35 @@
 import {
+  Avatar,
   Badge,
-  Button,
-  ButtonGroup,
-  Card,
-  CardBody,
-  CardFooter,
-  Divider,
-  Heading,
   Stack,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Tfoot,
+  Th,
+  Thead,
   Text,
+  Tr,
+  Center,
 } from "@chakra-ui/react";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { CreateTicket } from "~/components/form/TicketForm";
-import { LoadingSpinner } from "~/components/loading";
+import { LoadingProvider, LoadingSpinner } from "~/components/loading";
 import { AssignModal, DeleteModal } from "~/components/modal";
-import { Nav } from "~/components/nav";
-
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data, isLoading } = api.ticket.tickets.useQuery();
   console.log(data);
-  if (isLoading) return <LoadingSpinner />;
-  if (!data) return <>404</>;
+  if (isLoading)
+    return (
+      <LoadingProvider>
+        <LoadingSpinner />
+      </LoadingProvider>
+    );
+  if (!data) return <LoadingProvider>404</LoadingProvider>;
   return (
     <>
       <Head>
@@ -32,40 +38,30 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <Nav />
-
         <div className="container mx-auto p-4">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            <div className="hidden md:block lg:block">
-              <Text fontSize="3xl" as={"b"}>
-                Create Ticket
-              </Text>
-              <CreateTicket className="p-4 shadow-lg" />
-            </div>
-            <div className="flex flex-col gap-4 ">
-              <div className="block md:hidden lg:hidden">
-                <Text fontSize="3xl" as={"b"}>
-                  Create Ticket
-                </Text>
-                <CreateTicket className="p-4 shadow-lg" />
-              </div>
-              <Text fontSize="3xl" as={"b"}>
-                My Tickets
-              </Text>
-
-              {data.map((ticket) => {
-                return (
-                  <Card maxW="sm" shadow="lg" key={ticket.id}>
-                    <CardBody>
-                      <Stack mt="6" spacing="3">
-                        <Heading size="md">{ticket.subject}</Heading>
-                        <Text fontSize={"sm"} noOfLines={4}>
-                          {ticket.description}
-                        </Text>
-                        <Text color="blue.600" fontSize="2xl">
-                          $450
-                        </Text>
-                        <Stack direction="row">
+          <CreateTicket className="p-4 shadow-md " />
+          {data.length == 0 ? (
+            <Center>Nothing to Display!</Center>
+          ) : (
+            <TableContainer>
+              <Table size="lg">
+                <Thead>
+                  <Tr>
+                    <Th>Subject</Th>
+                    <Th>Category</Th>
+                    <Th>Status</Th>
+                    <Th>Requestor</Th>
+                    <Th>Assignee</Th>
+                    <Th>Action</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {data.map((ticket) => {
+                    return (
+                      <Tr key={ticket.id}>
+                        <Td>{ticket.subject}</Td>
+                        <Td>{ticket.category.replaceAll("_", " ")}</Td>
+                        <Td>
                           <Badge
                             colorScheme={
                               ticket.status == "TBA"
@@ -79,36 +75,54 @@ const Home: NextPage = () => {
                           >
                             {ticket.status}
                           </Badge>
-                        </Stack>
-                      </Stack>
-                    </CardBody>
-                    <Divider />
-                    <CardFooter>
-                      <ButtonGroup spacing="2">
-                        {!ticket.closedAt && (
-                          <Button variant="solid" colorScheme="teal">
-                            Close
-                          </Button>
-                        )}
+                        </Td>
+                        <Td>
+                          <Stack direction={"row"} placeItems={"center"}>
+                            <Avatar
+                              size="md"
+                              name={ticket.requestor.name ?? ""}
+                              src={ticket.requestor.image ?? ""}
+                            />
 
-                        {!ticket.assignedTo && (
-                          <AssignModal ticketId={ticket.id} />
-                        )}
-                        {!ticket.closedAt && (
-                          <DeleteModal ticketId={ticket.id}/>
-                        )}
-                      </ButtonGroup>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-            </div>
-            <div>
-              <Text fontSize="3xl" as={"b"}>
-                My Tasks
-              </Text>
-            </div>
-          </div>
+                            <Text as={"b"}>{ticket.requestor.name}</Text>
+                          </Stack>
+                        </Td>
+                        <Td>
+                          <Stack direction={"row"} placeItems={"center"}>
+                            <Avatar
+                              size="md"
+                              name={ticket.assignee?.name ?? ""}
+                              src={ticket.assignee?.image ?? ""}
+                            />
+
+                            <Text as={"b"}>
+                              {ticket.assignee?.name ?? "Unassigned"}
+                            </Text>
+                          </Stack>
+                        </Td>
+                        <Td>
+                          <Stack direction={"row"} placeItems={"center"}>
+                            <AssignModal ticketId={ticket.id} />
+                            <DeleteModal ticketId={ticket.id} />
+                          </Stack>
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </Tbody>
+                <Tfoot>
+                  <Tr>
+                    <Th>Subject</Th>
+                    <Th>Category</Th>
+                    <Th>Status</Th>
+                    <Th>Requestor</Th>
+                    <Th>Assignee</Th>
+                    <Th>Action</Th>
+                  </Tr>
+                </Tfoot>
+              </Table>
+            </TableContainer>
+          )}
         </div>
       </main>
     </>

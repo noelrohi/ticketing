@@ -31,8 +31,9 @@ model Ticket {
     category    Category
     status      Status @default(TBA)
     assignedTo  String?
+    assignee    User? @relation(fields: [assignedTo], references: [id], name: "assign")
     requestorId String
-    requestor   User      @relation(fields: [requestorId], references: [id])
+    requestor   User      @relation(fields: [requestorId], references: [id], name: "request")
 
     @@index([assignedTo, requestorId])
 }
@@ -41,6 +42,7 @@ enum Status {
     TBA
     OPEN
     IN_PROGRESS
+    DONE
     CLOSED
 }
 
@@ -89,7 +91,8 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
-    requests        Ticket[]
+    requests        Ticket[] @relation(name: "request")
+    tasks   Ticket[] @relation(name: "assign")
 }
 
 model VerificationToken {

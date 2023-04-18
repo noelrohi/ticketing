@@ -1,13 +1,14 @@
 import {
-    Box,
-    Button,
-    ButtonGroup,
-    Flex,
-    Heading,
-    Spacer,
-    Text
+  Box,
+  Button,
+  ButtonGroup,
+  Flex,
+  Heading,
+  Spacer,
+  Stack,
+  Text,
 } from "@chakra-ui/react";
-import { useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 export const Nav = () => {
   const { data: sessionData } = useSession();
@@ -27,12 +28,20 @@ export const Nav = () => {
       <Spacer />
 
       <ButtonGroup gap="2">
-        {!sessionData && <Button colorScheme="teal">Log in</Button>}
-        {sessionData && (
-          <Text color="teal.500" fontWeight={"bold"}>
-            Welcome {sessionData.user.name}!
-          </Text>
-        )}
+        <Stack direction={"row"} placeItems={"center"}>
+          {sessionData && (
+            <Text color="teal.500" fontWeight={"bold"}>
+              Welcome {sessionData.user.name}!
+            </Text>
+          )}
+          <Button
+            colorScheme="teal"
+            size={'sm'}
+            onClick={sessionData ? () => void signOut() : () => void signIn()}
+          >
+            {sessionData ? "Sign Out" : "Sign In"}
+          </Button>
+        </Stack>
       </ButtonGroup>
     </Flex>
   );

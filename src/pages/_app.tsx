@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Nav } from "~/components/nav";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -14,6 +15,8 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <ChakraProvider>
+        <Nav />
+
         <Component {...pageProps} />
       </ChakraProvider>
     </SessionProvider>

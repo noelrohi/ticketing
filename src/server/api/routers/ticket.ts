@@ -11,12 +11,28 @@ import {
 import { TicketSchema } from "~/schema/Ticket";
 
 export const ticketRouter = createTRPCRouter({
-  tickets: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.ticket.findMany({
+  tickets: publicProcedure.query(async ({ ctx }) => {
+    const tix = await ctx.prisma.ticket.findMany({
       orderBy: {
         createdAt: "desc",
-      }
+      },
+      include: {
+        requestor: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+        assignee: {
+          select: {
+            name: true,
+            image: true,
+          }
+        }
+      },
     });
+    
+    return tix;
   }),
 
   create: protectedProcedure
@@ -34,7 +50,7 @@ export const ticketRouter = createTRPCRouter({
           message:
             "Too many requests, try again in 1 min. You can only post 3  per minute.",
         });
-        console.log(input)
+      console.log(input);
       return ctx.prisma.ticket.create({
         data: {
           subject: input.subject,
@@ -58,7 +74,7 @@ export const ticketRouter = createTRPCRouter({
       if (!success)
         throw new TRPCError({
           code: "TOO_MANY_REQUESTS",
-          message: "You can reassign after a minute.",
+          message: "You can assign more after a minute.",
         });
       return ctx.prisma.ticket.update({
         where: {
