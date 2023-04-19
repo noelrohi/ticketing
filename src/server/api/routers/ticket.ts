@@ -8,7 +8,7 @@ import {
   publicProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
-import { TicketSchema } from "~/schema/Ticket";
+import { TicketSchema, addDateTargetSchema } from "~/schema/Ticket";
 
 export const ticketRouter = createTRPCRouter({
   tickets: publicProcedure.query(async ({ ctx }) => {
@@ -19,21 +19,41 @@ export const ticketRouter = createTRPCRouter({
       include: {
         requestor: {
           select: {
+            role: true,
             name: true,
+            email: true,
             image: true,
+            id: true,
           },
         },
         assignee: {
           select: {
+            role: true,
             name: true,
+            email: true,
             image: true,
-          }
-        }
+            id: true,
+          },
+        },
       },
     });
-    
+
     return tix;
   }),
+
+  addDateTarget: protectedProcedure
+    .input(addDateTargetSchema)
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.ticket.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          target: input.date,
+          status: "OPEN",
+        },
+      });
+    }),
 
   create: protectedProcedure
     .input(TicketSchema)
@@ -65,24 +85,43 @@ export const ticketRouter = createTRPCRouter({
   assign: protectedProcedure
     .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const ratelimit = new Ratelimit({
-        redis: Redis.fromEnv(),
-        limiter: Ratelimit.slidingWindow(1, "1 m"),
-        analytics: true,
+      const tick = await ctx.prisma.ticket.findUnique({
+        where: {
+          id: input.id,
+        },
       });
-      const { success } = await ratelimit.limit(ctx.session.user.id);
-      if (!success)
+      if (!tick)
         throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: "You can assign more after a minute.",
+          code: "NOT_FOUND",
+          message: "Ticket not found.",
         });
+      console.log(tick.target);
+      if (!tick.target) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Kindly set its date target first before assigning.",
+        });
+      }
+
+      // const ratelimit = new Ratelimit({
+      //   redis: Redis.fromEnv(),
+      //   limiter: Ratelimit.slidingWindow(1, "1 m"),
+      //   analytics: true,
+      // });
+      // const { success } = await ratelimit.limit(ctx.session.user.id);
+      // if (!success)
+      //   throw new TRPCError({
+      //     code: "TOO_MANY_REQUESTS",
+      //     message: "You can assign more after a minute.",
+      //   });
+
       return ctx.prisma.ticket.update({
         where: {
           id: input.id,
         },
         data: {
           assignedTo: input.userId,
-          status: "OPEN",
+          status: "IN_PROGRESS",
         },
       });
     }),

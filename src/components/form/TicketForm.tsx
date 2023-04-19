@@ -1,5 +1,5 @@
 import {
-    Button,
+  Button,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -14,7 +14,7 @@ import { TicketSchema } from "~/schema/Ticket";
 import { api } from "~/utils/api";
 import { useZodForm } from "~/utils/useZodForm";
 
-export const CreateTicket = (props: {className : string}) => {
+export const CreateTicket = (props: { className: string }) => {
   const methods = useZodForm({
     schema: TicketSchema,
   });
@@ -29,10 +29,10 @@ export const CreateTicket = (props: {className : string}) => {
 
   const onSubmit = methods.handleSubmit(
     (data) => {
-        createTicket.mutate(data);
+      createTicket.mutate(data);
     },
     (e) => {
-      console.log(e)
+      console.log(e);
       console.log("Whoops... something went wrong!");
       console.error(e);
     }
@@ -68,7 +68,7 @@ export const CreateTicket = (props: {className : string}) => {
             >
               {Object.entries(Category).map(([key, value]) => (
                 <option key={key} value={value}>
-                  {value.replaceAll('_', ' ')}
+                  {value.replaceAll("_", " ")}
                 </option>
               ))}
             </Select>
@@ -84,7 +84,9 @@ export const CreateTicket = (props: {className : string}) => {
             ? "Loading..."
             : "Create"}
         </Button>
-        <p className="font-medium text-red-500">{createTicket.error?.message}</p>
+        <p className="font-medium text-red-500">
+          {createTicket.error?.message}
+        </p>
       </FormControl>
     </form>
   );
