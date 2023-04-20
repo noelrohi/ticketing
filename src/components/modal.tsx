@@ -9,36 +9,74 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
   ModalOverlay,
+  Select,
   Stack,
   Text,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
-import { LoadingProvider } from "./loading";
+import { LoadingProvider } from "~/components/loading";
+import { CreateTicket } from "~/components/form/TicketForm";
 
-// const utils = api.useContext();
-// const { mutate: closeTicket, isLoading: closing } =
-//   api.ticket.close.useMutation({
-//     onSettled: async (data, error) => {
-//       await utils.ticket.invalidate();
-//       console.log(data, error);
-//     },
-//   });
+export function OpenCreateTicketModal(){
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  return (
+    <>
+      <Button onClick={onOpen}>Open Modal</Button>
 
-export function AssignModal(props: { ticketId: string }) {
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create Ticket</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <CreateTicket className="p-4 shadow-md max-w-sm" />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  )
+}
+
+export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
   const utils = api.useContext();
-  const { mutate: assignTicket, isLoading: assigning } =
-    api.ticket.assign.useMutation({
-      onSettled: async (data, error) => {
-        console.log(data);
-        await utils.ticket.invalidate();
-        console.log(data, error);
-      },
-    });
+  const toast = useToast();
+  const {
+    mutate: assignTicket,
+    isLoading: assigning,
+    isSuccess,
+  } = api.ticket.assign.useMutation({
+    onSettled: async (data, error) => {
+      if (data?.assignee?.name)
+        toast({
+          title: `Assigned to ${data?.assignee?.name}`,
+          status: "success",
+          isClosable: true,
+        });
+      await utils.ticket.invalidate();
+      console.log(data, error);
+    },
+    onError(error, _) {
+      let title = error.message;
+      const zodError = error.data?.zodError?.fieldErrors.userId;
+      if (zodError && zodError[0]) title = zodError[0];
+      toast({
+        title: title,
+        status: "error",
+        isClosable: true,
+      });
+    },
+  });
 
   const { data: session } = useSession();
 
@@ -48,7 +86,7 @@ export function AssignModal(props: { ticketId: string }) {
   const [user, setUser] = useState<string>("");
   return (
     <>
-      <Button onClick={onOpen} variant="solid" colorScheme="blue" size={"sm"}>
+      <Button onClick={onOpen} variant="solid" colorScheme="blue" size={"sm"} isDisabled={props.isDisabled}>
         Assign
       </Button>
 
@@ -69,7 +107,7 @@ export function AssignModal(props: { ticketId: string }) {
                 {data?.map((user) => {
                   return (
                     <option value={user.id} key={user.id}>
-                      {user.name}
+                      {user.name} [{user.role}]
                     </option>
                   );
                 })}
@@ -92,8 +130,14 @@ export function AssignModal(props: { ticketId: string }) {
               </Button>
               {session && (
                 <Button
-                  variant="outline"
-                  onClick={() => setUser(session.user.id)}
+                  variant="ghost"
+                  onClick={() =>
+                    assignTicket({
+                      id: props.ticketId,
+                      userId: session.user.id,
+                    })
+                  }
+                  disabled={assigning || isSuccess}
                 >
                   Assign To Me
                 </Button>
@@ -170,7 +214,7 @@ export function DateTargetModal(props: { ticketId: string }) {
     },
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [input, setInput] = useState(new Date());
+  const [input, setInput] = useState<Date>(new Date());
   return (
     <>
       <Button onClick={onOpen} variant="ghost" colorScheme="green" size={"sm"}>
@@ -192,7 +236,7 @@ export function DateTargetModal(props: { ticketId: string }) {
               <Input
                 placeholder="Select Date and Time"
                 size="md"
-                type="date"
+                type="datetime-local"
                 onChange={(e) => setInput(new Date(e.target.value))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -234,14 +278,6 @@ export const UserModal = (props: {
   const { user } = props;
 
   return (
-    // <Stack direction={"row"} placeItems={"center"}>
-    //   <Avatar
-    //     size="md"
-    //     name={ticket.requestor.name ?? ""}
-    //     src={ticket.requestor.image ?? ""}
-    //   />
-
-    //   <Text as={"b"}>{ticket.requestor.name}</Text>
     <>
       <Avatar
         className="hover:cursor-pointer"

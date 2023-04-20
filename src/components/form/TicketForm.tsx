@@ -6,9 +6,11 @@ import {
   Input,
   Select,
   Textarea,
+  useToast,
 } from "@chakra-ui/react";
 import { Category } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { Controller } from "react-hook-form";
 import { TicketSchema } from "~/schema/Ticket";
 import { api } from "~/utils/api";
@@ -18,22 +20,28 @@ export const CreateTicket = (props: { className: string }) => {
   const methods = useZodForm({
     schema: TicketSchema,
   });
-
+  const toast = useToast();
   const utils = api.useContext();
   const createTicket = api.ticket.create.useMutation({
-    onSettled: async () => {
+    onSettled: async (data) => {
       await utils.ticket.invalidate();
       methods.reset();
-    },
-  });
+      if(data)
+        toast({
+          title: `Created ticket "${data?.subject}"`,
+          status: "success",
+          isClosable: true,
+        });
 
+    }
+  });
+  const [isValidForm, setisValidForm] = useState<boolean>(true);
   const onSubmit = methods.handleSubmit(
     (data) => {
       createTicket.mutate(data);
     },
     (e) => {
-      console.log(e);
-      console.log("Whoops... something went wrong!");
+      setisValidForm(false)
       console.error(e);
     }
   );
@@ -42,7 +50,7 @@ export const CreateTicket = (props: { className: string }) => {
   return (
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     <form action="" onSubmit={onSubmit} className={props.className}>
-      <FormControl className="space-y-2">
+      <FormControl className="space-y-2" isInvalid={!isValidForm}>
         <FormLabel htmlFor="subject">Subject</FormLabel>
         <Input type="text" {...methods.register("subject")} />
         <FormErrorMessage>
@@ -75,7 +83,7 @@ export const CreateTicket = (props: { className: string }) => {
           )}
         />
         <FormErrorMessage>
-          {methods.formState.errors.category?.message}
+          {methods.formState.errors.category?.type == 'invalid_enum_value' ? 'Invalid Category' : ''}
         </FormErrorMessage>
         <Button type="submit" disabled={!session}>
           {!session

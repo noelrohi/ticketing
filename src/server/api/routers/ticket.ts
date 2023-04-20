@@ -71,8 +71,13 @@ export const ticketRouter = createTRPCRouter({
             "Too many requests, try again in 1 min. You can only post 3  per minute.",
         });
       console.log(input);
+
+      const dateString = Date.now().toString(36);
+      const randomness = Math.random().toString(36).substring(2);
+
       return ctx.prisma.ticket.create({
         data: {
+          id: `TICKET-${dateString}-${randomness}`,
           subject: input.subject,
           description: input.description,
           category: input.category,
@@ -83,7 +88,7 @@ export const ticketRouter = createTRPCRouter({
     }),
 
   assign: protectedProcedure
-    .input(z.object({ id: z.string(), userId: z.string() }))
+    .input(z.object({ id: z.string(), userId: z.string().cuid("User not Set.") }))
     .mutation(async ({ ctx, input }) => {
       const tick = await ctx.prisma.ticket.findUnique({
         where: {
@@ -123,6 +128,9 @@ export const ticketRouter = createTRPCRouter({
           assignedTo: input.userId,
           status: "IN_PROGRESS",
         },
+        include: {
+          assignee: true,
+        }
       });
     }),
 

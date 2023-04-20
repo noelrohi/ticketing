@@ -9,12 +9,11 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
 } from "@chakra-ui/react";
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
-import { CreateTicket } from "~/components/form/TicketForm";
 import { LoadingProvider, LoadingSpinner } from "~/components/loading";
 import { AssignModal, DateTargetModal, DeleteModal } from "~/components/modal";
 import { UserPopOver } from "~/components/popover";
@@ -30,7 +29,6 @@ const Home: NextPage = () => {
       </Head>
       <main>
         <div className="container mx-auto p-4">
-          <CreateTicket className="p-4 shadow-md " />
           <TicketTable />
         </div>
       </main>
@@ -56,7 +54,7 @@ const TicketTable = () => {
         <Center>Nothing to Display!</Center>
       ) : (
         <TableContainer>
-          <Table size="lg">
+          <Table size="sm">
             <Thead>
               <Tr>
                 <Th>Subject</Th>
@@ -95,7 +93,11 @@ const TicketTable = () => {
                       <UserPopOver user={ticket.requestor} />
                     </Td>
                     <Td>
-                      {ticket.assignee ? <UserPopOver user={ticket.assignee}/> : <Avatar name="?" />}
+                      {ticket.assignee ? (
+                        <UserPopOver user={ticket.assignee} />
+                      ) : (
+                        <Avatar name="?" />
+                      )}
                     </Td>
                     <Td>{ticket.createdAt.toDateString()} </Td>
                     <Td>
@@ -107,7 +109,10 @@ const TicketTable = () => {
                     <Td>
                       <Stack direction={"row"} placeItems={"center"}>
                         {sesh?.user.id === ticket.requestorId && (
-                          <AssignModal ticketId={ticket.id} />
+                          <AssignModal
+                            ticketId={ticket.id}
+                            isDisabled={typeof ticket.assignedTo == "string"}
+                          />
                         )}
                         {sesh?.user.id === ticket.requestorId && (
                           <DeleteModal ticketId={ticket.id} />

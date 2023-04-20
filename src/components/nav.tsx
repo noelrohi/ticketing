@@ -9,6 +9,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { CreateDrawer } from "./drawer";
 
 export const Nav = () => {
   const { data: sessionData } = useSession();
@@ -23,6 +24,12 @@ export const Nav = () => {
     >
       <Box p="2">
         <Heading size="md">Ticketing System</Heading>
+      </Box>
+      <Box p="2">
+      <Heading size="md" className="hover:cursor-pointer">
+        <CreateDrawer />
+      </Heading>
+
       </Box>
 
       <Spacer />
