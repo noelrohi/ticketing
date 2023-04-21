@@ -51,18 +51,22 @@ export function OpenCreateTicketModal(){
 export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
   const utils = api.useContext();
   const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     mutate: assignTicket,
     isLoading: assigning,
     isSuccess,
   } = api.ticket.assign.useMutation({
     onSettled: async (data, error) => {
-      if (data?.assignee?.name)
+      if (data?.assignee?.name){
+        onClose();
         toast({
           title: `Assigned to ${data?.assignee?.name}`,
           status: "success",
           isClosable: true,
         });
+      }
+        
       await utils.ticket.invalidate();
       console.log(data, error);
     },
@@ -80,7 +84,6 @@ export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
 
   const { data: session } = useSession();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { data, isLoading } = api.user.getAll.useQuery();
   const [user, setUser] = useState<string>("");
@@ -145,6 +148,65 @@ export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
 
               <Button colorScheme="red" mr={3} onClick={onClose}>
                 Close
+              </Button>
+            </Stack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}
+export function Close(props: { ticketId: string }) {
+  const { data: session } = useSession();
+  const toast = useToast();
+  const utils = api.useContext();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { mutate: closeTicket, isLoading: closing } =
+    api.ticket.close.useMutation({
+      onSettled: async (data, error) => {
+        if(!error) {
+          onClose();
+          toast({
+            title: "Marked as closed .",
+            status: "success",
+            isClosable: true,
+          });
+        }
+        await utils.ticket.invalidate();
+        console.log(data, error);
+      },
+    });
+  return (
+    <>
+      <Button onClick={onOpen} variant="solid" colorScheme="orange" size={"sm"}>
+        Close
+      </Button>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Close this ticket? </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>Ticket ID: {props.ticketId}</ModalBody>
+
+          <ModalFooter>
+            <Stack direction="row">
+              {session && (
+                <Button
+                  colorScheme="red"
+                  onClick={() =>
+                    closeTicket({
+                      id: props.ticketId,
+                      userId: session.user.id,
+                    })
+                  }
+                >
+                  {closing ? "Closing..." : "Close Ticket"}
+                </Button>
+              )}
+
+              <Button colorScheme="gray" mr={3} onClick={onClose}>
+                Dismiss
               </Button>
             </Stack>
           </ModalFooter>
