@@ -89,7 +89,7 @@ export const Nav = () => {
 };
 
 export const ChakraNav = () => {
-  const Links = ["Tasks", "Requests"];
+  // const Links = [];
 
   const NavLink = ({ children }: { children: ReactNode }) => (
     <Link
@@ -131,12 +131,12 @@ export const ChakraNav = () => {
               spacing={4}
               display={{ base: "none", md: "flex" }}
             >
-              <NavLink>
+              <Button>
                 <CreateDrawer />
-              </NavLink>
-              {Links.map((link) => (
+              </Button>
+              {/* {Links.map((link) => (
                 <NavLink key={link}>{link}</NavLink>
-              ))}
+              ))} */}
             </HStack>
           </HStack>
           <Flex alignItems={"center"}>
@@ -153,7 +153,7 @@ export const ChakraNav = () => {
                 </MenuButton>
                 <MenuList>
                   <MenuItem>{sessionData.user.name}</MenuItem>
-                  <MenuItem>Profile</MenuItem>
+                  <MenuItem as={Link} href={`/user/${sessionData.user.id}`}>Profile</MenuItem>
                   <MenuDivider />
                   <MenuItem onClick={() => void signOut()}>Sign Out</MenuItem>
                 </MenuList>
@@ -177,9 +177,9 @@ export const ChakraNav = () => {
                 <CreateDrawer />
               </NavLink>
 
-              {Links.map((link) => (
+              {/* {Links.map((link) => (
                 <NavLink key={link}>{link}</NavLink>
-              ))}
+              ))} */}
             </Stack>
           </Box>
         ) : null}

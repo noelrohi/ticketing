@@ -2,8 +2,8 @@
 
 ### TODOS:
 
-[x] Responsive Nav + User Menu
-[x] Toast on Modals
-[ ] Requests Page
-[ ] Tasks Page
-[ ] Table Filters
+- [x] Responsive Nav + User Menu
+- [x] Toast on Modals
+- [x] Requests Page
+- [x] Tasks Page
+- [ ] Table Filters

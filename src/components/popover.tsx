@@ -42,7 +42,7 @@ export const UserPopOver = (props: {
               <Stack>
                 <Text><b>Role: </b>{user.role}</Text>
                 <Text><b>Email: </b>{user.email}</Text>
-                <Button colorScheme="blue" as={Link} href={`/users/${user.id}`}>View Profile</Button>
+                <Button colorScheme="blue" as={Link} href={`/user/${user.id}`}>View Profile</Button>
               </Stack>
             </PopoverBody>
             {/* <PopoverFooter>This is the footer</PopoverFooter> */}

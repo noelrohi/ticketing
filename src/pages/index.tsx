@@ -14,32 +14,19 @@ import {
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
+import { PageLayout } from "~/components/layout";
 import { LoadingProvider, LoadingSpinner } from "~/components/loading";
-import { AssignModal, Close, DateTargetModal, DeleteModal } from "~/components/modal";
+import {
+  AssignModal,
+  Close,
+  DateTargetModal,
+  DeleteModal,
+} from "~/components/modal";
 import { UserPopOver } from "~/components/popover";
-import { api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  return (
-    <>
-      <Head>
-        <title>Tickets</title>
-        <meta name="description" content="Tickets" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main>
-        <div className="container mx-auto p-4">
-          <TicketTable />
-        </div>
-      </main>
-    </>
-  );
-};
-
-const TicketTable = () => {
   const { data, isLoading } = api.ticket.tickets.useQuery();
-  // const user = ();
-  const { data: sesh } = useSession();
   if (isLoading)
     return (
       <LoadingProvider>
@@ -47,10 +34,29 @@ const TicketTable = () => {
       </LoadingProvider>
     );
   if (!data) return <LoadingProvider>404</LoadingProvider>;
+  return (
+    <>
+      <Head>
+        <title>Tickets</title>
+        <meta name="description" content="Tickets" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <PageLayout>
+        <TicketTable tickets={data} />
+      </PageLayout>
+    </>
+  );
+};
+
+export const TicketTable = (props: {
+  tickets: RouterOutputs["ticket"]["tickets"];
+}) => {
+  // const user = ();
+  const { data: sesh } = useSession();
 
   return (
     <>
-      {data.length == 0 ? (
+      {props.tickets.length == 0 ? (
         <Center>Nothing to Display!</Center>
       ) : (
         <TableContainer>
@@ -69,7 +75,7 @@ const TicketTable = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {data.map((ticket) => {
+              {props.tickets.map((ticket) => {
                 return (
                   <Tr key={ticket.id}>
                     <Td>{ticket.subject}</Td>
@@ -117,9 +123,8 @@ const TicketTable = () => {
                         {sesh?.user.id === ticket.requestorId && (
                           <DeleteModal ticketId={ticket.id} />
                         )}
-                        {sesh?.user.id === ticket.assignedTo && !ticket.closedAt && (
-                          <Close ticketId={ticket.id} />
-                        )}
+                        {sesh?.user.id === ticket.assignedTo &&
+                          !ticket.closedAt && <Close ticketId={ticket.id} />}
                       </Stack>
                     </Td>
                   </Tr>

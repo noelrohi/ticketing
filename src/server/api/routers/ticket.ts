@@ -41,6 +41,74 @@ export const ticketRouter = createTRPCRouter({
     return tix;
   }),
 
+  ticketsBy: publicProcedure
+    .input(z.object({ id: z.string(), type: z.enum(['Requests', 'Tasks']) }))
+    .query(async ({ ctx, input }) => {
+      let users;
+      if(input.type === 'Requests'){
+        users = await ctx.prisma.ticket.findMany({
+          where: {
+            requestorId: input.id,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            requestor: {
+              select: {
+                role: true,
+                name: true,
+                email: true,
+                image: true,
+                id: true,
+              },
+            },
+            assignee: {
+              select: {
+                role: true,
+                name: true,
+                email: true,
+                image: true,
+                id: true,
+              },
+            },
+          },
+        });
+      }else{
+        users = await ctx.prisma.ticket.findMany({
+          where: {
+            assignedTo: input.id,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            requestor: {
+              select: {
+                role: true,
+                name: true,
+                email: true,
+                image: true,
+                id: true,
+              },
+            },
+            assignee: {
+              select: {
+                role: true,
+                name: true,
+                email: true,
+                image: true,
+                id: true,
+              },
+            },
+          },
+        });
+      }
+      
+
+      return users;
+    }),
+
   addDateTarget: protectedProcedure
     .input(addDateTargetSchema)
     .mutation(async ({ ctx, input }) => {
