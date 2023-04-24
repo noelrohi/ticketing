@@ -138,7 +138,7 @@ export const ticketRouter = createTRPCRouter({
           message:
             "Too many requests, try again in 1 min. You can only post 3  per minute.",
         });
-      console.log(input);
+      // console.log(input);
 
       const dateString = Date.now().toString(36);
       const randomness = Math.random().toString(36).substring(2);
@@ -168,7 +168,7 @@ export const ticketRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Ticket not found.",
         });
-      console.log(tick.target);
+      // console.log(tick.target);
       if (!tick.target) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
