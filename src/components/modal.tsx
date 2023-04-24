@@ -57,7 +57,7 @@ export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
     isLoading: assigning,
     isSuccess,
   } = api.ticket.assign.useMutation({
-    onSettled: async (data, error) => {
+    onSettled: async (data/*, error*/) => {
       if (data?.assignee?.name){
         onClose();
         toast({
@@ -68,7 +68,7 @@ export function AssignModal(props: { ticketId: string, isDisabled?: boolean }) {
       }
         
       await utils.ticket.invalidate();
-      console.log(data, error);
+      // console.log(data, error);
     },
     onError(error, _) {
       let title = error.message;
@@ -173,7 +173,7 @@ export function Close(props: { ticketId: string }) {
           });
         }
         await utils.ticket.invalidate();
-        console.log(data, error);
+        // console.log(data, error);
       },
     });
   return (
@@ -221,9 +221,9 @@ export function DeleteModal(props: { ticketId: string }) {
   const utils = api.useContext();
   const { mutate: deleteTicket, isLoading: deleting } =
     api.ticket.delete.useMutation({
-      onSettled: async (data, error) => {
+      onSettled: async (/*data, error*/) => {
         await utils.ticket.invalidate();
-        console.log(data, error);
+        // console.log(data, error);
       },
     });
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -270,9 +270,9 @@ export function DateTargetModal(props: { ticketId: string }) {
   const { data: session } = useSession();
   const utils = api.useContext();
   const { mutate, isLoading } = api.ticket.addDateTarget.useMutation({
-    onSettled: async (data, error) => {
+    onSettled: async (/*data, error*/) => {
       await utils.ticket.invalidate();
-      console.log(data, error);
+      // console.log(data, error);
     },
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
