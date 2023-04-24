@@ -54,7 +54,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = generateSSGHelper();
 
   const id = context.params?.id;
-  console.log(context.params);
+  // console.log(context.params);
   // console.log(id);
 
   if (typeof id !== "string") throw new Error("no id");
